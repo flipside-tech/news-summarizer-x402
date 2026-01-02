@@ -36,15 +36,18 @@ Wallet: Your receiving address
 
 ## Local Setup
 
-git clone https://github.com/flipside-tech/your-repo.git
-cd your-repo
+git clone https://github.com/flipside-tech/news-summarizer-x402.git
+cd news-summarizer-x402
 npm install
 
 ## Set env vars
+
+```bash
 export CDP_API_KEY_ID='your_id'
 export CDP_API_KEY_SECRET='your_secret'
 export NEWS_API_TOKEN='your_token'
 node server.js
+```
 
 ## Built With
 
