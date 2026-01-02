@@ -1,15 +1,19 @@
 {
-  "name": "news-summarizer-x402-clean",
+  "name": "news-summarizer-x402",
   "version": "1.0.0",
   "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
- "dependencies": {
-  "express": "^4.18.2",
-  "axios": "^1.6.0",
-  "x402-express": "^2.1.0",
-  "@coinbase/x402": "^1.0.0"
+  "dependencies": {
+    "@coinbase/x402": "^2.1.0",
+    "@x402/core": "^2.1.0",
+    "@x402/evm": "^2.1.0",
+    "@x402/express": "^2.1.0",
+    "@x402/svm": "^2.1.0",
+    "axios": "^1.13.2",
+    "express": "^5.2.1",
+    "x402-express": "^1.1.0"
   }
 }
