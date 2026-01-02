@@ -2,57 +2,55 @@
 
 A real-time news summary API protected by **x402 micropayments** on Base.
 
-Pay **$0.005 USDC** per request — no subscription, no account needed. Perfect for AI agents, bots, or personal use.
+Pay **$0.005 USDC** per request — no subscription needed.
+
+## Features
+- Fresh news summaries
+- x402 protection (onchain USDC payments)
+- Ideal for AI agents and bots
 
 ## Endpoint
 
-GET https://your-vercel-url.vercel.app/summarize?topic=[your-topic]&limit=[1-20]
+GET https://your-vercel-url.vercel.app/summarize?topic=[topic]&limit=[1-20]
 
-### Example
+## Example Request
 
-https://your-vercel-url.vercel.app/summarize?topic=bitcoin&limit=10
+```bash
+curl "https://your-vercel-url.vercel.app/summarize?topic=bitcoin&limit=10"
 
-
-### Response (after payment)
-```json
 {
   "topic": "bitcoin",
   "summary": "Concise summary of latest news...",
-  "key_points": [
-    "Key point 1",
-    "Key point 2"
-  ],
+  "key_points": ["Point 1", "Point 2"],
   "sources": [
-    {
-      "title": "Article title",
-      "url": "https://..."
-    }
+    {"title": "Article Title", "url": "https://..."}
   ]
 }
+```
 
-Payment
+## Payment Details
 
-Price: $0.005 USDC per call
+Price: $0.005 USDC
 Chain: Base mainnet
-Powered by x402 + Coinbase CDP facilitator
+Wallet: Your receiving address
 
-Local Development
+## Local Setup
 
-git clone https://github.com/flipside-tech/news-summarizer-x402
-cd news-summarizer-x402
+git clone https://github.com/flipside-tech/your-repo.git
+cd your-repo
 npm install
-# Set env vars
+
+## Set env vars
 export CDP_API_KEY_ID='your_id'
 export CDP_API_KEY_SECRET='your_secret'
 export NEWS_API_TOKEN='your_token'
 node server.js
 
-Built With
+## Built With
 
 Node.js + Express
 x402-express + @coinbase/x402
 TheNewsAPI.com
 
-Status
-Active MVP — accepting real micropayments!
-Made by flipside-tech — January 2026
+Active MVP — accepting real micropayments! 🚀
+Made in 2026
