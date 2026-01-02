@@ -1,7 +1,7 @@
-const express = require('express');
-const axios = require('axios');
-const { paymentMiddleware } = require('x402-express');
-const { facilitator } = require('@coinbase/x402');  // Uses env vars for CDP keys
+import express from 'express';
+import axios from 'axios';
+import { paymentMiddleware } from 'x402-express';
+import { facilitator } from '@coinbase/x402';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
