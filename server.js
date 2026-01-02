@@ -49,11 +49,11 @@ app.get('/summarize', async (req, res) => {
   const hfResponse = await axios.post(
     'https://router.huggingface.co/v1/chat/completions',
     {
-      model: 'meta-llama/Llama-3.1-8B-Instruct',  // Better than BART for news summary (or use 'mistralai/Mistral-Nemo-Instruct-2407')
+      model: 'meta-llama/Llama-3.1-8B-Instruct',  // Reliable public model for summarization
       messages: [
         {
           role: 'system',
-          content: 'You are a concise news summarizer. Summarize in 3-5 sentences, focusing on key facts.'
+          content: 'You are a concise news summarizer. Provide a 3-5 sentence summary focusing on key facts and developments.'
         },
         {
           role: 'user',
