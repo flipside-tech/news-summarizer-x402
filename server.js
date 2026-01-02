@@ -26,7 +26,7 @@ app.get('/summarize', async (req, res) => {
   const { topic = 'world', limit = 10 } = req.query;
 
   try {
-    const newsUrl = `https://api.thenewsapi.com/v1/news/all?api_token=${NEWS_API_TOKEN}&search=${encodeURIComponent(topic)}&limit=${limit}&language=en`;
+    const newsUrl = `https://api.thenewsapi.com/v1/news/all?api_token=${process.env.NEWS_API_TOKEN}&search=${encodeURIComponent(topic)}&limit=${limit}&language=en`;
     const newsResponse = await axios.get(newsUrl);
     const articles = newsResponse.data.data || [];
 
@@ -34,11 +34,46 @@ app.get('/summarize', async (req, res) => {
       return res.status(404).json({ error: 'No articles found' });
     }
 
-    const content = articles.map(a => `${a.title}\n${a.description || ''}`).join('\n\n');
+    // Prepare raw text from articles for AI summarization
+    const rawText = articles
+      .map(a => `${a.title}. ${a.description || ''}`)
+      .join(' ');
 
+    // Truncate to safe length for Hugging Face free tier
+    const inputText = rawText.slice(0, 2000);
+
+    let summary = 'Summary generation failed (fallback)';
+
+    // Try Hugging Face AI summarization
+    try {
+      const hfResponse = await axios.post(
+        'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
+        {
+          inputs: inputText,
+          parameters: {
+            max_length: 200,
+            min_length: 50,
+            do_sample: false
+          }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.HF_TOKEN}`
+          }
+        }
+      );
+
+      summary = hfResponse.data[0]?.summary_text || summary;
+    } catch (hfError) {
+      console.error('Hugging Face error:', hfError.message);
+      // Fallback: simple bullet list of titles
+      summary = articles.map(a => `• ${a.title}`).join('\n');
+    }
+
+    // Return response with AI-powered summary
     res.json({
       topic,
-      summary: content,
+      summary,  // Now much smarter!
       key_points: articles.map(a => a.title),
       sources: articles.map(a => ({ title: a.title, url: a.url }))
     });
