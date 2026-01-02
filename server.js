@@ -47,21 +47,15 @@ app.get('/summarize', async (req, res) => {
     // Try Hugging Face AI summarization
     try {
       const hfResponse = await axios.post(
-        'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
-        {
-          inputs: inputText,
-          parameters: {
-            max_length: 200,
-            min_length: 50,
-            do_sample: false
-          }
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.HF_TOKEN}`
-          }
-        }
-      );
+  `https://router.huggingface.co/hf-inference/models/facebook/bart-large-cnn`,
+  {
+    inputs: inputText,
+    parameters: { max_length: 200, min_length: 50, do_sample: false }
+  },
+  {
+    headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
+  }
+);
 
       summary = hfResponse.data[0]?.summary_text || summary;
     } catch (hfError) {
