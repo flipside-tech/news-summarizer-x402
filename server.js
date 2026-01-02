@@ -47,10 +47,10 @@ app.get('/summarize', async (req, res) => {
     // Try Hugging Face AI summarization
     try {
       const hfResponse = await axios.post(
-  `https://router.huggingface.co/hf-inference/models/facebook/bart-large-cnn`,
+  'https://router.huggingface.co/hf-inference/models/sshleifer/distilbart-cnn-12-6',
   {
     inputs: inputText,
-    parameters: { max_length: 200, min_length: 50, do_sample: false }
+    parameters: { max_length: 150, min_length: 40, do_sample: false }
   },
   {
     headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
