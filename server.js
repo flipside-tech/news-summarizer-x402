@@ -46,16 +46,23 @@ app.get('/summarize', async (req, res) => {
 
     // Try Hugging Face AI summarization
     try {
-      const hfResponse = await axios.post(
-  'https://router.huggingface.co/hf-inference/models/sshleifer/distilbart-cnn-12-6',
-  {
-    inputs: inputText,
-    parameters: { max_length: 150, min_length: 40, do_sample: false }
-  },
-  {
-    //headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
-  }
-);
+      try {
+  const hfResponse = await axios.post(
+    'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
+    {
+      inputs: inputText,
+      parameters: { max_length: 200, min_length: 50, do_sample: false }
+    },
+    {
+      headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
+    }
+  );
+
+  summary = hfResponse.data[0]?.summary_text || summary;
+} catch (hfError) {
+  console.error('Hugging Face error:', hfError.message);
+  summary = articles.map(a => `• ${a.title}`).join('\n');
+}
 
       summary = hfResponse.data[0]?.summary_text || summary;
     } catch (hfError) {
