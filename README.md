@@ -36,9 +36,11 @@ Wallet: Your receiving address
 
 ## Local Setup
 
+```bash
 git clone https://github.com/flipside-tech/news-summarizer-x402.git
 cd news-summarizer-x402
 npm install
+```
 
 ## Set env vars
 
