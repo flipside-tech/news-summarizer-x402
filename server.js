@@ -49,7 +49,7 @@ app.get('/summarize', async (req, res) => {
   const hfResponse = await axios.post(
     'https://router.huggingface.co/v1/chat/completions',
     {
-      model: 'meta-llama/Llama-3.1-8B-Instruct',  // Reliable public model for summarization
+      model: 'mistralai/Mistral-Nemo-Instruct-2407',  // Reliable public model for summarization
       messages: [
         {
           role: 'system',
