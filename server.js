@@ -46,30 +46,36 @@ app.get('/summarize', async (req, res) => {
 
     // Try Hugging Face AI summarization
     try {
-      try {
   const hfResponse = await axios.post(
-    'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
+    'https://router.huggingface.co/v1/chat/completions',
     {
-      inputs: inputText,
-      parameters: { max_length: 200, min_length: 50, do_sample: false }
+      model: 'meta-llama/Llama-3.1-8B-Instruct',  // Better than BART for news summary (or use 'mistralai/Mistral-Nemo-Instruct-2407')
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a concise news summarizer. Summarize in 3-5 sentences, focusing on key facts.'
+        },
+        {
+          role: 'user',
+          content: inputText
+        }
+      ],
+      max_tokens: 300,
+      temperature: 0.5
     },
     {
-      headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
+      headers: {
+        Authorization: `Bearer ${process.env.HF_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
     }
   );
 
-  summary = hfResponse.data[0]?.summary_text || summary;
+  summary = hfResponse.data.choices[0]?.message?.content?.trim() || summary;
 } catch (hfError) {
-  console.error('Hugging Face error:', hfError.message);
+  console.error('Hugging Face error:', hfError.message || hfError.response?.data);
   summary = articles.map(a => `• ${a.title}`).join('\n');
 }
-
-      summary = hfResponse.data[0]?.summary_text || summary;
-    } catch (hfError) {
-      console.error('Hugging Face error:', hfError.message);
-      // Fallback: simple bullet list of titles
-      summary = articles.map(a => `• ${a.title}`).join('\n');
-    }
 
     // Return response with AI-powered summary
     res.json({
