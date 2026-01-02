@@ -53,7 +53,7 @@ app.get('/summarize', async (req, res) => {
     parameters: { max_length: 150, min_length: 40, do_sample: false }
   },
   {
-    headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
+    //headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
   }
 );
 
