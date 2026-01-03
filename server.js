@@ -48,27 +48,38 @@ try {
   const hfResponse = await axios.post(
     'https://router.huggingface.co/v1/chat/completions',
     {
-      model: 'meta-llama/Llama-3.1-8B-Instruct',  // Free public model, excellent summaries
+      model: 'meta-llama/Llama-3.1-8B-Instruct',
       messages: [
-        { role: 'system', content: 'You are a concise news summarizer. Summarize in 3-5 sentences with key facts.' },
+        { role: 'system', content: 'Summarize the news in 3-5 sentences.' },
         { role: 'user', content: inputText }
       ],
-      max_tokens: 300,
-      temperature: 0.5
+      max_tokens: 300
     },
     {
-      headers: {
-        Authorization: `Bearer ${process.env.HF_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
+      headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
     }
   );
 
   summary = hfResponse.data.choices[0]?.message?.content?.trim() || 'No summary';
-} catch (hfError) {
-  console.error('Hugging Face error:', hfError.message || hfError.response?.data);
-  summary = articles.map(a => `• ${a.title}`).join('\n');
+} catch (error) {
+  console.error('Hugging Face error:', error.response?.status, error.response?.data || error.message);
+
+  if (error.response?.status === 401) {
+    summary = 'Hugging Face authentication failed — check API key';
+  } else if (error.response?.status === 429) {
+    summary = 'Hugging Face rate limit exceeded';
+  } else {
+    summary = 'Summary generation error — try again later';
+  }
 }
+
+// Always return valid JSON
+res.json({
+  topic,
+  summary,
+  key_points: articles.map(a => a.title),
+  sources: articles.map(a => ({ title: a.title, url: a.url }))
+});
 
 // Always return valid JSON
 res.json({
