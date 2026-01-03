@@ -61,16 +61,12 @@ try {
   );
 
   // Success
-  if (response.data && response.data.summary_text) {
-    summary = response.data.summary_text;
-  } else {
-    summary = 'Summary generation failed (no text returned)';
-  }
+  summary = response.data?.summary_text || 'No summary text returned';
 } catch (error) {
-  console.error('NLP Cloud error:', error.response?.status, error.response?.data || error.message);
+  console.error('NLP Cloud full error:', error.response?.status, error.response?.data || error.message);
 
   if (error.response?.status === 401) {
-    summary = 'NLP Cloud authentication failed (check API key)';
+    summary = 'NLP Cloud authentication failed — check API key';
   } else if (error.response?.status === 429) {
     summary = 'NLP Cloud rate limit exceeded';
   } else {
@@ -78,7 +74,7 @@ try {
   }
 }
 
-// Always return JSON
+// Always return valid JSON
 res.json({
   topic,
   summary,
