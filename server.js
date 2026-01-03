@@ -44,32 +44,29 @@ app.get('/summarize', async (req, res) => {
 
     let summary = 'Summary generation failed (fallback)';
 
-    // Try Hugging Face AI summarization
+    // Try NLP Cloud AI summarization
     try {
-  const grokResponse = await axios.post(
-    'https://api.x.ai/v1/chat/completions',
+  const response = await axios.post(
+    'https://api.nlpcloud.io/v1/gpu/bart-large-cnn/summarization',
     {
-      model: 'grok-beta',  // Or latest
-      messages: [
-        { role: 'system', content: 'You are a concise news summarizer. Summarize in 3-5 sentences with key facts.' },
-        { role: 'user', content: inputText }
-      ],
-      max_tokens: 300,
-      temperature: 0.5
+      text: inputText,
+      max_length: 150,
+      min_length: 60
     },
     {
       headers: {
-        Authorization: `Bearer ${process.env.GROK_API_KEY}`,
+        Authorization: `Token ${process.env.NLP_CLOUD_API_KEY}`,
         'Content-Type': 'application/json'
       }
     }
   );
 
-  summary = grokResponse.data.choices[0].message.content.trim();
-} catch (grokError) {
-  console.error('Grok error:', grokError.message);
+  summary = response.data.summary_text;
+} catch (error) {
+  console.error('NLP Cloud error:', error.response?.data || error.message);
   summary = articles.map(a => `• ${a.title}`).join('\n');
 }
+
 
     // Return response with AI-powered summary
     res.json({
