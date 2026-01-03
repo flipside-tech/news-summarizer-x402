@@ -43,8 +43,9 @@ app.get('/summarize', async (req, res) => {
     const inputText = rawText.slice(0, 2000);
 
     // === ADD THESE DEBUG LOGS HERE ===
-    console.log('NLP Cloud key present:', !!process.env.NLP_CLOUD_API_KEY);  // true/false
-    console.log('Key starts with:', process.env.NLP_CLOUD_API_KEY?.substring(0, 10) || 'undefined');
+    console.log('All env vars loaded:', Object.keys(process.env).filter(k => k.includes('NLP') || k.includes('CLOUD')));
+    console.log('NLP key present:', !!process.env.NLP_CLOUD_API_KEY);
+    console.log('Key length:', process.env.NLP_CLOUD_API_KEY?.length || 0);
     // === END DEBUG LOGS ===
 
     let summary = 'Summary generation failed (fallback)';
