@@ -49,31 +49,21 @@ app.get('/summarize', async (req, res) => {
   const hfResponse = await axios.post(
     'https://router.huggingface.co/v1/chat/completions',
     {
-      model: 'google/gemma-3-27b-it',  // Reliable public model for summarization
+      model: 'meta-llama/Llama-3.1-8B-Instruct',
       messages: [
-        {
-          role: 'system',
-          content: 'You are a concise news summarizer. Provide a 3-5 sentence summary focusing on key facts and developments.'
-        },
-        {
-          role: 'user',
-          content: inputText
-        }
+        { role: 'system', content: 'Summarize the news in 3-5 sentences.' },
+        { role: 'user', content: inputText }
       ],
-      max_tokens: 300,
-      temperature: 0.5
+      max_tokens: 300
     },
     {
-      headers: {
-        Authorization: `Bearer ${process.env.HF_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
+      headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
     }
   );
 
-  summary = hfResponse.data.choices[0]?.message?.content?.trim() || summary;
+  summary = hfResponse.data.choices[0].message.content.trim();
 } catch (hfError) {
-  console.error('Hugging Face error:', hfError.message || hfError.response?.data);
+  console.error('Hugging Face error:', hfError.message);
   summary = articles.map(a => `• ${a.title}`).join('\n');
 }
 
