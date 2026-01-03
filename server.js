@@ -42,6 +42,11 @@ app.get('/summarize', async (req, res) => {
     // Truncate to safe length for Hugging Face free tier
     const inputText = rawText.slice(0, 2000);
 
+    // === ADD THESE DEBUG LOGS HERE ===
+    console.log('NLP Cloud key present:', !!process.env.NLP_CLOUD_API_KEY);  // true/false
+    console.log('Key starts with:', process.env.NLP_CLOUD_API_KEY?.substring(0, 10) || 'undefined');
+    // === END DEBUG LOGS ===
+
     let summary = 'Summary generation failed (fallback)';
 
     // Try NLP Cloud AI summarization
