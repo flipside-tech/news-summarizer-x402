@@ -46,24 +46,28 @@ app.get('/summarize', async (req, res) => {
 
     // Try Hugging Face AI summarization
     try {
-  const hfResponse = await axios.post(
-    'https://router.huggingface.co/v1/chat/completions',
+  const grokResponse = await axios.post(
+    'https://api.x.ai/v1/chat/completions',
     {
-      model: 'meta-llama/Llama-3.1-8B-Instruct',
+      model: 'grok-beta',  // Or latest
       messages: [
-        { role: 'system', content: 'Summarize the news in 3-5 sentences.' },
+        { role: 'system', content: 'You are a concise news summarizer. Summarize in 3-5 sentences with key facts.' },
         { role: 'user', content: inputText }
       ],
-      max_tokens: 300
+      max_tokens: 300,
+      temperature: 0.5
     },
     {
-      headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
+      headers: {
+        Authorization: `Bearer ${process.env.GROK_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
     }
   );
 
-  summary = hfResponse.data.choices[0].message.content.trim();
-} catch (hfError) {
-  console.error('Hugging Face error:', hfError.message);
+  summary = grokResponse.data.choices[0].message.content.trim();
+} catch (grokError) {
+  console.error('Grok error:', grokError.message);
   summary = articles.map(a => `• ${a.title}`).join('\n');
 }
 
