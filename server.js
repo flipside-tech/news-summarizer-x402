@@ -47,7 +47,7 @@ app.get('/summarize', async (req, res) => {
     // Try NLP Cloud AI summarization
     try {
   const response = await axios.post(
-    'https://api.nlpcloud.io/v1/gpu/bart-large-cnn/summarization',
+    'https://api.nlpcloud.io/v1/bart-large-cnn/summarization',
     {
       text: inputText,
       max_length: 150,
