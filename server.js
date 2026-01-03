@@ -42,36 +42,38 @@ app.get('/summarize', async (req, res) => {
     // Truncate to safe length for Hugging Face free tier
     const inputText = rawText.slice(0, 2000);
 
-    let summary = 'Summary unavailable';
+    let summary = 'Summary generation failed (fallback)';
 
 try {
-  const response = await axios.post(
-    'https://api.nlpcloud.io/v1/bart-large-cnn/summarization',
+  const hfResponse = await axios.post(
+    'https://router.huggingface.co/v1/chat/completions',
     {
-      text: inputText,
-      max_length: 150,
-      min_length: 60
+      model: 'meta-llama/Llama-3.1-8B-Instruct',  // Reliable public model
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a concise news summarizer. Summarize in 3-5 sentences with key facts.'
+        },
+        {
+          role: 'user',
+          content: inputText
+        }
+      ],
+      max_tokens: 300,
+      temperature: 0.5
     },
     {
       headers: {
-        Authorization: `Token ${process.env.NLP_CLOUD_API_KEY}`,
+        Authorization: `Bearer ${process.env.HF_TOKEN}`,
         'Content-Type': 'application/json'
       }
     }
   );
 
-  // Success
-  summary = response.data?.summary_text || 'No summary text returned';
-} catch (error) {
-  console.error('NLP Cloud full error:', error.response?.status, error.response?.data || error.message);
-
-  if (error.response?.status === 401) {
-    summary = 'NLP Cloud authentication failed — check API key';
-  } else if (error.response?.status === 429) {
-    summary = 'NLP Cloud rate limit exceeded';
-  } else {
-    summary = 'Summary generation error — try again later';
-  }
+  summary = hfResponse.data.choices[0]?.message?.content?.trim() || summary;
+} catch (hfError) {
+  console.error('Hugging Face error:', hfError.message || hfError.response?.data);
+  summary = articles.map(a => `• ${a.title}`).join('\n');
 }
 
 // Always return valid JSON
