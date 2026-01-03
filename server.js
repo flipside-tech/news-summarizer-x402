@@ -61,9 +61,11 @@ app.get('/summarize', async (req, res) => {
     }
   );
 
-  summary = response.data.summary_text;
+  // NLP Cloud returns { summary_text: "..." }
+  summary = response.data.summary_text || 'No summary generated';
 } catch (error) {
   console.error('NLP Cloud error:', error.response?.data || error.message);
+  // Fallback to bullet titles
   summary = articles.map(a => `• ${a.title}`).join('\n');
 }
 
