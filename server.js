@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // === REPLACE THESE ===
 const NEWS_API_TOKEN = 'GSYK6v23j11u7tE7NmWKpU5RRmNzQOi5b1JfugHM';
-const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';  // Real base wallet (mainnet or sepolia)
+const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';  // Real base wallet (main or sepolia)
 
 app.use(paymentMiddleware(
   WALLET_ADDRESS,
