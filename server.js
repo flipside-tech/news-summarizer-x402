@@ -25,68 +25,53 @@ app.use(paymentMiddleware(
 app.get('/summarize', async (req, res) => {
   const { topic = 'world', limit = 10 } = req.query;
 
+  let summary = 'Summary generation failed (fallback)';
+  let key_points = [];
+  let sources = [];
+
   try {
     const newsUrl = `https://api.thenewsapi.com/v1/news/all?api_token=${process.env.NEWS_API_TOKEN}&search=${encodeURIComponent(topic)}&limit=${limit}&language=en`;
     const newsResponse = await axios.get(newsUrl);
     const articles = newsResponse.data.data || [];
 
     if (articles.length === 0) {
-      return res.status(404).json({ error: 'No articles found' });
+      throw new Error('No articles found');
     }
 
-    // Prepare raw text from articles for AI summarization
-    const rawText = articles
-      .map(a => `${a.title}. ${a.description || ''}`)
-      .join(' ');
+    key_points = articles.map(a => a.title);
+    sources = articles.map(a => ({ title: a.title, url: a.url }));
 
-    // Truncate to safe length for Hugging Face free tier
+    const rawText = articles.map(a => `${a.title}. ${a.description || ''}`).join(' ');
     const inputText = rawText.slice(0, 2000);
 
-    let summary = 'Summary generation failed (fallback)';
-
-try {
-  const hfResponse = await axios.post(
-    'https://router.huggingface.co/v1/chat/completions',
-    {
-      model: 'meta-llama/Llama-3.1-8B-Instruct',
-      messages: [
-        { role: 'system', content: 'You are a concise news summarizer. Summarize in 3-5 sentences with key facts.' },
-        { role: 'user', content: inputText }
-      ],
-      max_tokens: 300,
-      temperature: 0.5
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.HF_TOKEN}`,
-        'Content-Type': 'application/json'
+    const hfResponse = await axios.post(
+      'https://router.huggingface.co/v1/chat/completions',
+      {
+        model: 'meta-llama/Llama-3.1-8B-Instruct',
+        messages: [
+          { role: 'system', content: 'Summarize the news in 3-5 sentences.' },
+          { role: 'user', content: inputText }
+        ],
+        max_tokens: 300
+      },
+      {
+        headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
       }
-    }
-  );
+    );
 
-  summary = hfResponse.data.choices[0]?.message?.content?.trim() || 'No summary generated';
-} catch (error) {
-  console.error('Hugging Face error:', error.response?.status, error.response?.data || error.message);
-
-  if (error.response?.status === 401) {
-    summary = 'Hugging Face authentication failed — check API key';
-  } else if (error.response?.status === 429) {
-    summary = 'Hugging Face rate limit exceeded';
-  } else {
-    summary = 'Summary generation error — try again later';
-  }
-}
-
-// Always return valid JSON
-res.json({
-  topic,
-  summary,
-  key_points: articles.map(a => a.title),
-  sources: articles.map(a => ({ title: a.title, url: a.url }))
-});
+    summary = hfResponse.data.choices[0]?.message?.content?.trim() || summary;
   } catch (error) {
-    console.error('Error:', error.message);
-    res.status(500).json({ error: 'Failed to fetch news' });
+    console.error('Endpoint error:', error.message || error);
+
+    summary = 'Summary generation failed — please try again later';
+  } finally {
+    // Always return valid JSON, no matter what
+    res.json({
+      topic,
+      summary,
+      key_points,
+      sources
+    });
   }
 });
 
