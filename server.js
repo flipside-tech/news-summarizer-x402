@@ -45,13 +45,13 @@ app.get('/summarize', async (req, res) => {
     let summary = 'Summary generation failed (fallback)';
 
     // Try NLP Cloud AI summarization
-    try {
+   try {
   const response = await axios.post(
-    'https://api.nlpcloud.io/v1/bart-large-cnn/summarization',
+    'https://api.nlpcloud.io/v1/bart-large-cnn/summarization',  // CPU version (free tier)
     {
       text: inputText,
-      max_length: 150,
-      min_length: 60
+      max_length: 200,
+      min_length: 50
     },
     {
       headers: {
@@ -61,11 +61,9 @@ app.get('/summarize', async (req, res) => {
     }
   );
 
-  // NLP Cloud returns { summary_text: "..." }
   summary = response.data.summary_text || 'No summary generated';
 } catch (error) {
   console.error('NLP Cloud error:', error.response?.data || error.message);
-  // Fallback to bullet titles
   summary = articles.map(a => `• ${a.title}`).join('\n');
 }
 
