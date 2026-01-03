@@ -42,16 +42,15 @@ app.get('/summarize', async (req, res) => {
     // Truncate to safe length for Hugging Face free tier
     const inputText = rawText.slice(0, 2000);
 
-    let summary = 'Summary generation failed (fallback)';
+    let summary = 'Summary unavailable';
 
-    // Try NLP Cloud AI summarization
-   try {
+try {
   const response = await axios.post(
-    'https://api.nlpcloud.io/v1/bart-large-cnn/summarization',  // CPU version (free tier)
+    'https://api.nlpcloud.io/v1/bart-large-cnn/summarization',
     {
       text: inputText,
-      max_length: 200,
-      min_length: 50
+      max_length: 150,
+      min_length: 60
     },
     {
       headers: {
@@ -61,20 +60,31 @@ app.get('/summarize', async (req, res) => {
     }
   );
 
-  summary = response.data.summary_text || 'No summary generated';
+  // Success
+  if (response.data && response.data.summary_text) {
+    summary = response.data.summary_text;
+  } else {
+    summary = 'Summary generation failed (no text returned)';
+  }
 } catch (error) {
-  console.error('NLP Cloud error:', error.response?.data || error.message);
-  summary = articles.map(a => `• ${a.title}`).join('\n');
+  console.error('NLP Cloud error:', error.response?.status, error.response?.data || error.message);
+
+  if (error.response?.status === 401) {
+    summary = 'NLP Cloud authentication failed (check API key)';
+  } else if (error.response?.status === 429) {
+    summary = 'NLP Cloud rate limit exceeded';
+  } else {
+    summary = 'Summary generation error — try again later';
+  }
 }
 
-
-    // Return response with AI-powered summary
-    res.json({
-      topic,
-      summary,  // Now much smarter!
-      key_points: articles.map(a => a.title),
-      sources: articles.map(a => ({ title: a.title, url: a.url }))
-    });
+// Always return JSON
+res.json({
+  topic,
+  summary,
+  key_points: articles.map(a => a.title),
+  sources: articles.map(a => ({ title: a.title, url: a.url }))
+});
   } catch (error) {
     console.error('Error:', error.message);
     res.status(500).json({ error: 'Failed to fetch news' });
