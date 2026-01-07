@@ -20,46 +20,63 @@
   <div id="result">Enter a topic and click the button (payment required)</div>
 
   <script type="module">
-    import { wrapFetchWithPayment } from 'https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs';
+  console.log('Frontend script loaded');
 
-    async function fetchSummary() {
-      const topic = document.getElementById('topic').value.trim() || 'world';
-      const url = `/summarize?topic=${encodeURIComponent(topic)}&limit=10`;
+  let wrapFetchWithPayment;
+  try {
+    const module = await import('https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs');
+    wrapFetchWithPayment = module.wrapFetchWithPayment;
+    console.log('x402-fetch loaded successfully');
+  } catch (importError) {
+    console.error('Failed to load x402-fetch:', importError);
+    document.getElementById('result').innerHTML = 'Error loading payment SDK — try refreshing';
+  }
 
-      const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = 'Loading... (wallet connect/payment if required)';
+  async function fetchSummary() {
+    const topic = document.getElementById('topic').value.trim() || 'world';
+    const url = `/summarize?topic=${encodeURIComponent(topic)}&limit=10`;
 
-      try {
-        const response = await wrapFetchWithPayment(fetch)(url);
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = 'Loading... (wallet connect/payment if required)';
 
-        if (!response.ok) {
-          const text = await response.text();
-          resultDiv.innerHTML = `<pre>Status ${response.status}<br>${text}</pre>`;
-          return;
-        }
+    console.log('Fetching:', url);
 
-        const data = await response.json();
-        resultDiv.innerHTML = `
-          <h3>Summary for "${data.topic}":</h3>
-          <p><strong>${data.summary}</strong></p>
-          <h4>Key Points:</h4>
-          <ul>${data.key_points.map(p => `<li>${p}</li>`).join('')}</ul>
-          <h4>Sources:</h4>
-          <ul>${data.sources.map(s => `<li><a href="${s.url}" target="_blank">${s.title}</a></li>`).join('')}</ul>
-        `;
-      } catch (error) {
-        console.error('Error:', error);
-        resultDiv.innerHTML = `Error: ${error.message}`;
-      }
+    if (!wrapFetchWithPayment) {
+      resultDiv.innerHTML = 'Payment SDK not loaded';
+      return;
     }
 
-    // Attach click handler
-    document.addEventListener('DOMContentLoaded', () => {
-      const button = document.getElementById('get-summary');
-      if (button) {
-        button.addEventListener('click', fetchSummary);
+    try {
+      const response = await wrapFetchWithPayment(fetch)(url);
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const text = await response.text();
+        resultDiv.innerHTML = `<pre>Status ${response.status}<br>${text}</pre>`;
+        return;
       }
-    });
-  </script>
+
+      const data = await response.json();
+      resultDiv.innerHTML = `
+        <h3>Summary for "${data.topic}":</h3>
+        <p><strong>${data.summary}</strong></p>
+        <h4>Key Points:</h4>
+        <ul>${data.key_points.map(p => `<li>${p}</li>`).join('')}</ul>
+      `;
+    } catch (error) {
+      console.error('Fetch error:', error);
+      resultDiv.innerHTML = `Error: ${error.message}`;
+    }
+  }
+
+  // Attach button click
+  document.addEventListener('DOMContentLoaded', () => {
+    const button = document.getElementById('get-summary');
+    if (button) {
+      button.addEventListener('click', fetchSummary);
+    }
+  });
+</script>
 </body>
 </html>
