@@ -91,8 +91,9 @@ app.get('/summarize', async (req, res) => {
     key_points,
     sources
   });
+});
 
-  app.get('/sentiment', async (req, res) => {
+app.get('/sentiment', async (req, res) => {
   const { topic = 'world', limit = 20 } = req.query;
 
   let sentiment = 'neutral';
@@ -155,7 +156,6 @@ app.get('/summarize', async (req, res) => {
     explanation,
     key_points
   });
-});
 });
 
 app.listen(PORT, () => {
