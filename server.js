@@ -76,19 +76,20 @@ app.get('/summarize', async (req, res) => {
     );
 
     summary = hfResponse.data.choices[0]?.message?.content?.trim() || summary;
-  } catch (error) {
+    } catch (error) {
     console.error('Endpoint error:', error.message || error);
-
-    summary = 'Summary generation failed — please try again later';
-  } finally {
-    // Always return valid JSON, no matter what
-    res.json({
-      topic,
-      summary,
-      key_points,
-      sources
-    });
+    summary = 'Summary currently unavailable — please try again in a moment';
+    key_points = key_points || [];
+    sources = sources || [];
   }
+
+  // Always return valid JSON with explicit topic
+  res.json({
+    topic: topic,  // Explicitly use the query topic (never overridden)
+    summary,
+    key_points,
+    sources
+  });
 });
 
 app.listen(PORT, () => {
