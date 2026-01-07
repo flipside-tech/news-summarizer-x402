@@ -1,6 +1,6 @@
 import express from 'express';
 import axios from 'axios';
-const path = require('path');
+import path from 'path';
 import { paymentMiddleware } from 'x402-express';
 import { facilitator } from '@coinbase/x402';
 
