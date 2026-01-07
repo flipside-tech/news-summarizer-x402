@@ -30,11 +30,11 @@ app.use(paymentMiddleware(
       network: 'base',  // 'base' for mainnet, 'base-sepolia' for testnet
       description: 'Real-time news summary'
     },
-    'GET /sentiment': {  // <-- New route
-      price: '$0.005',
-      network: 'base',
-      description: 'Sentiment analysis of recent news'
-    }
+    //'GET /sentiment': {  // <-- New route
+     // price: '$0.005',
+     // network: 'base',
+     // description: 'Sentiment analysis of recent news'
+ //   }
   },
   facilitator  // Coinbase CDP facilitator
 ));
