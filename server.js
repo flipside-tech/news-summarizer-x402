@@ -5,10 +5,6 @@ import path from 'path';
 import { paymentMiddleware } from 'x402-express';
 import { facilitator } from '@coinbase/x402';
 
-console.log('Server starting...');
-console.log('HF_TOKEN loaded:', !!process.env.HF_TOKEN);
-console.log('NEWS_API_TOKEN loaded:', !!process.env.NEWS_API_TOKEN);
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -33,6 +29,11 @@ app.use(paymentMiddleware(
       price: '$0.005',
       network: 'base',  // 'base' for mainnet, 'base-sepolia' for testnet
       description: 'Real-time news summary'
+    },
+    'GET /sentiment': {  // <-- New route
+      price: '$0.005',
+      network: 'base',
+      description: 'Sentiment analysis of recent news'
     }
   },
   facilitator  // Coinbase CDP facilitator
@@ -90,6 +91,71 @@ app.get('/summarize', async (req, res) => {
     key_points,
     sources
   });
+
+  app.get('/sentiment', async (req, res) => {
+  const { topic = 'world', limit = 20 } = req.query;
+
+  let sentiment = 'neutral';
+  let explanation = 'No data available';
+  let key_points = [];
+
+  try {
+    const newsUrl = `https://api.thenewsapi.com/v1/news/all?api_token=${process.env.NEWS_API_TOKEN}&search=${encodeURIComponent(topic)}&limit=${limit}&language=en`;
+    const newsResponse = await axios.get(newsUrl);
+    const articles = newsResponse.data.data || [];
+
+    if (articles.length === 0) {
+      throw new Error('No articles found');
+    }
+
+    key_points = articles.map(a => a.title);
+
+    const rawText = articles.map(a => `${a.title}. ${a.description || ''}`).join(' ');
+    const inputText = rawText.slice(0, 2000);
+
+    // Hugging Face sentiment analysis
+    const hfResponse = await axios.post(
+      'https://router.huggingface.co/v1/chat/completions',
+      {
+        model: 'meta-llama/Llama-3.1-8B-Instruct',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a financial news sentiment analyst. Analyze the overall sentiment as positive, negative, or neutral. Provide a brief explanation.'
+          },
+          {
+            role: 'user',
+            content: `Analyze sentiment for "${topic}" based on these recent articles:\n\n${inputText}`
+          }
+        ],
+        max_tokens: 200,
+        temperature: 0.3
+      },
+      {
+        headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
+      }
+    );
+
+    const analysis = hfResponse.data.choices[0]?.message?.content?.trim() || '';
+
+    // Parse sentiment from response (Llama is good at following instructions)
+    if (analysis.toLowerCase().includes('positive')) sentiment = 'positive';
+    else if (analysis.toLowerCase().includes('negative')) sentiment = 'negative';
+    else sentiment = 'neutral';
+
+    explanation = analysis;
+  } catch (error) {
+    console.error('Sentiment endpoint error:', error.message);
+    explanation = 'Sentiment analysis failed — try again later';
+  }
+
+  res.json({
+    topic,
+    sentiment,
+    explanation,
+    key_points
+  });
+});
 });
 
 app.listen(PORT, () => {
