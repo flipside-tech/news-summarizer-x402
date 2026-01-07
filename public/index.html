@@ -19,19 +19,8 @@
 
   <div id="result">Enter a topic and click the button (payment required)</div>
 
-  <!-- === REPLACE EVERYTHING BELOW WITH THIS SCRIPT === -->
   <script type="module">
-    console.log('Frontend script loaded');
-
-    let wrapFetchWithPayment;
-    try {
-      const module = await import('https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs');
-      wrapFetchWithPayment = module.wrapFetchWithPayment;
-      console.log('x402-fetch loaded successfully');
-    } catch (importError) {
-      console.error('Failed to load x402-fetch:', importError);
-      document.getElementById('result').innerHTML = 'Error loading payment SDK — try refreshing';
-    }
+    import { wrapFetchWithPayment } from 'https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs';
 
     async function fetchSummary() {
       const topic = document.getElementById('topic').value.trim() || 'world';
@@ -40,17 +29,8 @@
       const resultDiv = document.getElementById('result');
       resultDiv.innerHTML = 'Loading... (wallet connect/payment if required)';
 
-      console.log('Fetching:', url);
-
-      if (!wrapFetchWithPayment) {
-        resultDiv.innerHTML = 'Payment SDK not loaded';
-        return;
-      }
-
       try {
         const response = await wrapFetchWithPayment(fetch)(url);
-
-        console.log('Response status:', response.status);
 
         if (!response.ok) {
           const text = await response.text();
@@ -68,7 +48,7 @@
           <ul>${data.sources.map(s => `<li><a href="${s.url}" target="_blank">${s.title}</a></li>`).join('')}</ul>
         `;
       } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('Error:', error);
         resultDiv.innerHTML = `Error: ${error.message}`;
       }
     }
@@ -81,6 +61,5 @@
       }
     });
   </script>
-  <!-- === END NEW SCRIPT === -->
 </body>
 </html>
