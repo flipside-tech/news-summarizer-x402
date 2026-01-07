@@ -6,8 +6,8 @@
   <title>x402 News Summarizer</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
-    input, button { padding: 10px; font-size: 16px; }
-    #result { margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+    input, button { padding: 10px; font-size: 16px; margin: 5px; }
+    #result { margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #f9f9f9; }
   </style>
 </head>
 <body>
@@ -15,64 +15,51 @@
   <p>Pay $0.005 USDC on Base for an AI summary of any topic.</p>
 
   <input type="text" id="topic" placeholder="Enter topic (e.g., bitcoin)" value="bitcoin">
-  <button onclick="fetchSummary()">Get Summary</button>
+  <button id="get-summary">Get Summary</button>
 
-  <div id="result">Click to load summary (payment required)</div>
+  <div id="result">Enter a topic and click the button (payment required)</div>
 
   <script type="module">
-  import { wrapFetchWithPayment } from 'https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs';
+    import { wrapFetchWithPayment } from 'https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs';
 
-  async function fetchSummary() {
-    const topicInput = document.getElementById('topic');
-    const resultDiv = document.getElementById('result');
+    async function fetchSummary() {
+      const topic = document.getElementById('topic').value.trim() || 'world';
+      const url = `/summarize?topic=${encodeURIComponent(topic)}&limit=10`;
 
-    if (!topicInput || !resultDiv) {
-      console.error('Input or result div not found');
-      return;
-    }
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = 'Loading... (wallet connect/payment if required)';
 
-    const topic = topicInput.value.trim() || 'world';
-    const url = `/summarize?topic=${encodeURIComponent(topic)}&limit=10`;  // Relative URL
+      try {
+        const response = await wrapFetchWithPayment(fetch)(url);
 
-    resultDiv.innerHTML = 'Loading... (wallet connect/payment if required)';
+        if (!response.ok) {
+          const text = await response.text();
+          resultDiv.innerHTML = `<pre>Status ${response.status}<br>${text}</pre>`;
+          return;
+        }
 
-    console.log('Fetching:', url);
-
-    try {
-      const response = await wrapFetchWithPayment(fetch)(url);
-
-      console.log('Response status:', response.status);
-
-      if (!response.ok) {
-        const text = await response.text();
-        resultDiv.innerHTML = `<pre>Status ${response.status}: ${text}</pre>`;
-        return;
+        const data = await response.json();
+        resultDiv.innerHTML = `
+          <h3>Summary for "${data.topic}":</h3>
+          <p><strong>${data.summary}</strong></p>
+          <h4>Key Points:</h4>
+          <ul>${data.key_points.map(p => `<li>${p}</li>`).join('')}</ul>
+          <h4>Sources:</h4>
+          <ul>${data.sources.map(s => `<li><a href="${s.url}" target="_blank">${s.title}</a></li>`).join('')}</ul>
+        `;
+      } catch (error) {
+        console.error('Error:', error);
+        resultDiv.innerHTML = `Error: ${error.message}`;
       }
-
-      const data = await response.json();
-      resultDiv.innerHTML = `
-        <h3>Summary for "${data.topic}":</h3>
-        <p><strong>${data.summary}</strong></p>
-        <h4>Key Points:</h4>
-        <ul>${data.key_points.map(p => `<li>${p}</li>`).join('')}</ul>
-        <h4>Sources:</h4>
-        <ul>${data.sources.map(s => `<li><a href="${s.url}" target="_blank">${s.title}</a></li>`).join('')}</ul>
-      `;
-    } catch (error) {
-      console.error('Fetch error:', error);
-      resultDiv.innerHTML = `Error: ${error.message}`;
     }
-  }
 
-  // Attach event listener (instead of onclick)
-  document.addEventListener('DOMContentLoaded', () => {
-    const button = document.querySelector('button');
-    if (button) {
-      button.addEventListener('click', fetchSummary);
-    } else {
-      console.error('Button not found');
-    }
-  });
-</script>
+    // Attach click handler
+    document.addEventListener('DOMContentLoaded', () => {
+      const button = document.getElementById('get-summary');
+      if (button) {
+        button.addEventListener('click', fetchSummary);
+      }
+    });
+  </script>
 </body>
 </html>
