@@ -1,10 +1,16 @@
 import express from 'express';
 import axios from 'axios';
+const path = require('path');
 import { paymentMiddleware } from 'x402-express';
 import { facilitator } from '@coinbase/x402';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // === REPLACE THESE ===
 const NEWS_API_TOKEN = 'GSYK6v23j11u7tE7NmWKpU5RRmNzQOi5b1JfugHM';
