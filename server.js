@@ -46,7 +46,7 @@ app.get('/summarize', async (req, res) => {
   let sources = [];
 
   try {
-    const newsUrl = `https://api.thenewsapi.com/v1/news/all?api_token=${process.env.NEWS_API_TOKEN}&...`;
+    const newsUrl = `https://api.thenewsapi.com/v1/news/all?api_token=${process.env.NEWS_API_TOKEN}&search=${encodeURIComponent(topic)}&limit=${limit}&language=en`;
     const newsResponse = await axios.get(newsUrl);
     const articles = newsResponse.data.data || [];
 
