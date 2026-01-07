@@ -9,26 +9,18 @@ console.log('Server starting...');
 console.log('HF_TOKEN loaded:', !!process.env.HF_TOKEN);
 console.log('NEWS_API_TOKEN loaded:', !!process.env.NEWS_API_TOKEN);
 
-// Convert import.meta.url to __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Optional root route (redundant but safe)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve index.html on root
+// Optional root route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-const PORT = process.env.PORT || 3000;
 
 // === REPLACE THESE ===
 const NEWS_API_TOKEN = 'GSYK6v23j11u7tE7NmWKpU5RRmNzQOi5b1JfugHM';
