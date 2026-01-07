@@ -17,48 +17,21 @@
   <input type="text" id="topic" placeholder="Enter topic (e.g., bitcoin)" value="bitcoin">
   <button id="get-summary">Get Summary</button>
 
-  <div id="result">Enter a topic and click the button (payment required)</div>
+  <div id="result">Enter a topic and click the button — you'll be taken to the summary page (payment required).</div>
 
-  <script type="module">
-    import { wrapFetchWithPayment } from 'https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs';
-
-    async function fetchSummary() {
-      const topic = document.getElementById('topic').value.trim() || 'world';
-      const url = `/summarize?topic=${encodeURIComponent(topic)}&limit=10`;
-
-      const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = 'Loading... (wallet connect/payment if required)';
-
-      try {
-        const response = await wrapFetchWithPayment(fetch)(url);
-
-        if (!response.ok) {
-          const text = await response.text();
-          resultDiv.innerHTML = `<pre>Status ${response.status}<br>${text}</pre>`;
-          return;
-        }
-
-        const data = await response.json();
-        resultDiv.innerHTML = `
-          <h3>Summary for "${data.topic}":</h3>
-          <p><strong>${data.summary}</strong></p>
-          <h4>Key Points:</h4>
-          <ul>${data.key_points.map(p => `<li>${p}</li>`).join('')}</ul>
-          <h4>Sources:</h4>
-          <ul>${data.sources.map(s => `<li><a href="${s.url}" target="_blank">${s.title}</a></li>`).join('')}</ul>
-        `;
-      } catch (error) {
-        console.error('Error:', error);
-        resultDiv.innerHTML = `Error: ${error.message}`;
-      }
-    }
-
-    // Attach click handler
+  <script>
     document.addEventListener('DOMContentLoaded', () => {
       const button = document.getElementById('get-summary');
-      if (button) {
-        button.addEventListener('click', fetchSummary);
-      }
+      const topicInput = document.getElementById('topic');
+      const resultDiv = document.getElementById('result');
+
+      button.addEventListener('click', () => {
+        const topic = topicInput.value.trim() || 'world';
+        const url = `/summarize?topic=${encodeURIComponent(topic)}&limit=10`;
+
+        resultDiv.innerHTML = 'Redirecting to summary page (payment will be required)...';
+        window.location.href = url;  // Navigates to the API endpoint on the same domain
+      });
     });
   </script>
 </body>
