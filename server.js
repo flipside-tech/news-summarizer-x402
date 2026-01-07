@@ -1,5 +1,6 @@
 import express from 'express';
 import axios from 'axios';
+import path from 'path';
 import { paymentMiddleware } from 'x402-express';
 import { facilitator } from '@coinbase/x402';
 
