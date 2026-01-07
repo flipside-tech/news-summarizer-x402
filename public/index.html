@@ -20,36 +20,49 @@
   <div id="result">Click to load summary (payment required)</div>
 
   <script type="module">
-    import { wrapFetchWithPayment } from 'https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs';
+  import { wrapFetchWithPayment } from 'https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs';
 
-    async function fetchSummary() {
-      const topic = document.getElementById('topic').value || 'world';
-      const url = `https://news-summarizer-x402.vercel.app/summarize?topic=${encodeURIComponent(topic)}&limit=10`;
+  async function fetchSummary() {
+    const topicInput = document.getElementById('topic');
+    const resultDiv = document.getElementById('result');
 
-      const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = 'Loading... (connect wallet if prompted)';
-
-      try {
-        const response = await wrapFetchWithPayment(fetch)(url);
-
-        if (!response.ok) {
-          const text = await response.text();
-          resultDiv.innerHTML = `<pre>${text}</pre>`;
-          return;
-        }
-
-        const data = await response.json();
-        resultDiv.innerHTML = `
-          <h3>Summary for "${data.topic}":</h3>
-          <p><strong>${data.summary}</strong></p>
-          <h4>Key Points:</h4>
-          <ul>${data.key_points.map(p => `<li>${p}</li>`).join('')}</ul>
-        `;
-      } catch (error) {
-        resultDiv.innerHTML = `Error: ${error.message}`;
-      }
+    if (!topicInput || !resultDiv) {
+      console.error('Input or result div not found');
+      return;
     }
-    
-  </script>
+
+    const topic = topicInput.value.trim() || 'world';
+    const url = `/summarize?topic=${encodeURIComponent(topic)}&limit=10`;  // Relative URL (same origin)
+
+    resultDiv.innerHTML = 'Loading... (wallet connect/payment if required)';
+
+    console.log('Fetching:', url);
+
+    try {
+      const response = await wrapFetchWithPayment(fetch)(url);
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const text = await response.text();
+        resultDiv.innerHTML = `<pre>Status ${response.status}: ${text}</pre>`;
+        return;
+      }
+
+      const data = await response.json();
+      resultDiv.innerHTML = `
+        <h3>Summary for "${data.topic}":</h3>
+        <p><strong>${data.summary}</strong></p>
+        <h4>Key Points:</h4>
+        <ul>${data.key_points.map(p => `<li>${p}</li>`).join('')}</ul>
+        <h4>Sources:</h4>
+        <ul>${data.sources.map(s => `<li><a href="${s.url}" target="_blank">${s.title}</a></li>`).join('')}</ul>
+      `;
+    } catch (error) {
+      console.error('Fetch error:', error);
+      resultDiv.innerHTML = `Error: ${error.message}`;
+    }
+  }
+</script>
 </body>
 </html>
