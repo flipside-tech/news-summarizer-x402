@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>x402 News Summarizer</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+    input, button { padding: 10px; font-size: 16px; }
+    #result { margin-top: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>x402 News Summarizer</h1>
+  <p>Pay $0.005 USDC on Base for an AI summary of any topic.</p>
+
+  <input type="text" id="topic" placeholder="Enter topic (e.g., bitcoin)" value="bitcoin">
+  <button onclick="fetchSummary()">Get Summary</button>
+
+  <div id="result">Click to load summary (payment required)</div>
+
+  <script type="module">
+    import { wrapFetchWithPayment } from 'https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs';
+
+    async function fetchSummary() {
+      const topic = document.getElementById('topic').value || 'world';
+      const url = `https://news-summarizer-x402.vercel.app/summarize?topic=${encodeURIComponent(topic)}&limit=10`;
+
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = 'Loading... (connect wallet if prompted)';
+
+      try {
+        const response = await wrapFetchWithPayment(fetch)(url);
+
+        if (!response.ok) {
+          const text = await response.text();
+          resultDiv.innerHTML = `<pre>${text}</pre>`;
+          return;
+        }
+
+        const data = await response.json();
+        resultDiv.innerHTML = `
+          <h3>Summary for "${data.topic}":</h3>
+          <p><strong>${data.summary}</strong></p>
+          <h4>Key Points:</h4>
+          <ul>${data.key_points.map(p => `<li>${p}</li>`).join('')}</ul>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = `Error: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>
