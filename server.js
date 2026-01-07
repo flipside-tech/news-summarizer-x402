@@ -1,31 +1,25 @@
 import express from 'express';
 import axios from 'axios';
-import path from 'path';
 import { paymentMiddleware } from 'x402-express';
 import { facilitator } from '@coinbase/x402';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Serve index.html on root
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';
+// === REPLACE THESE ===
+const NEWS_API_TOKEN = 'GSYK6v23j11u7tE7NmWKpU5RRmNzQOi5b1JfugHM';
+const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';  // Real base wallet (main or sepolia)
 
 app.use(paymentMiddleware(
   WALLET_ADDRESS,
   {
     'GET /summarize': {
       price: '$0.005',
-      network: 'base',
+      network: 'base',  // 'base' for mainnet, 'base-sepolia' for testnet
       description: 'Real-time news summary'
     }
   },
-  facilitator
+  facilitator  // Coinbase CDP facilitator
 ));
 
 app.get('/summarize', async (req, res) => {
@@ -68,8 +62,10 @@ app.get('/summarize', async (req, res) => {
     summary = hfResponse.data.choices[0]?.message?.content?.trim() || summary;
   } catch (error) {
     console.error('Endpoint error:', error.message || error);
-    summary = 'Summary generation failed — try again later';
+
+    summary = 'Summary generation failed — please try again later';
   } finally {
+    // Always return valid JSON, no matter what
     res.json({
       topic,
       summary,
