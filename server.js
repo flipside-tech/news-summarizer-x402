@@ -4,6 +4,12 @@ import { paymentMiddleware } from 'x402-express';
 import { facilitator } from '@coinbase/x402';
 
 const app = express();
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve index.html on root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 const PORT = process.env.PORT || 3000;
 
 // === REPLACE THESE ===
