@@ -20,23 +20,32 @@
   <div id="result">Click to load summary (payment required)</div>
 
   <script type="module">
-  import { wrapFetchWithPayment } from 'https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs';
+  console.log('Frontend script loaded');
+
+  // Import the x402 SDK
+  let wrapFetchWithPayment;
+  try {
+    const module = await import('https://cdn.jsdelivr.net/npm/x402-fetch@latest/dist/esm/index.mjs');
+    wrapFetchWithPayment = module.wrapFetchWithPayment;
+    console.log('x402-fetch imported successfully');
+  } catch (importError) {
+    console.error('Failed to import x402-fetch:', importError);
+    document.getElementById('result').innerHTML = 'Error loading payment SDK — try refreshing';
+  }
 
   async function fetchSummary() {
-    const topicInput = document.getElementById('topic');
+    const topic = document.getElementById('topic').value.trim() || 'world';
+    const url = `/summarize?topic=${encodeURIComponent(topic)}&limit=10`;
+
     const resultDiv = document.getElementById('result');
-
-    if (!topicInput || !resultDiv) {
-      console.error('Input or result div not found');
-      return;
-    }
-
-    const topic = topicInput.value.trim() || 'world';
-    const url = `/summarize?topic=${encodeURIComponent(topic)}&limit=10`;  // Relative URL (same origin)
-
-    resultDiv.innerHTML = 'Loading... (wallet connect/payment if required)';
+    resultDiv.innerHTML = 'Loading...';
 
     console.log('Fetching:', url);
+
+    if (!wrapFetchWithPayment) {
+      resultDiv.innerHTML = 'Payment SDK not loaded';
+      return;
+    }
 
     try {
       const response = await wrapFetchWithPayment(fetch)(url);
@@ -45,7 +54,7 @@
 
       if (!response.ok) {
         const text = await response.text();
-        resultDiv.innerHTML = `<pre>Status ${response.status}: ${text}</pre>`;
+        resultDiv.innerHTML = `<pre>Status ${response.status}<br>${text}</pre>`;
         return;
       }
 
@@ -55,14 +64,20 @@
         <p><strong>${data.summary}</strong></p>
         <h4>Key Points:</h4>
         <ul>${data.key_points.map(p => `<li>${p}</li>`).join('')}</ul>
-        <h4>Sources:</h4>
-        <ul>${data.sources.map(s => `<li><a href="${s.url}" target="_blank">${s.title}</a></li>`).join('')}</ul>
       `;
     } catch (error) {
       console.error('Fetch error:', error);
       resultDiv.innerHTML = `Error: ${error.message}`;
     }
   }
+
+  // Attach button click
+  document.addEventListener('DOMContentLoaded', () => {
+    const button = document.querySelector('button');
+    if (button) {
+      button.addEventListener('click', fetchSummary);
+    }
+  });
 </script>
 </body>
 </html>
