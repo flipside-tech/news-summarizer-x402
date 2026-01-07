@@ -8,24 +8,24 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve index.html on root
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// === REPLACE THESE ===
-const NEWS_API_TOKEN = 'GSYK6v23j11u7tE7NmWKpU5RRmNzQOi5b1JfugHM';
-const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';  // Real base wallet (main or sepolia)
+const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';
 
 app.use(paymentMiddleware(
   WALLET_ADDRESS,
   {
     'GET /summarize': {
       price: '$0.005',
-      network: 'base',  // 'base' for mainnet, 'base-sepolia' for testnet
+      network: 'base',
       description: 'Real-time news summary'
     }
   },
-  facilitator  // Coinbase CDP facilitator
+  facilitator
 ));
 
 app.get('/summarize', async (req, res) => {
@@ -68,10 +68,8 @@ app.get('/summarize', async (req, res) => {
     summary = hfResponse.data.choices[0]?.message?.content?.trim() || summary;
   } catch (error) {
     console.error('Endpoint error:', error.message || error);
-
-    summary = 'Summary generation failed — please try again later';
+    summary = 'Summary generation failed — try again later';
   } finally {
-    // Always return valid JSON, no matter what
     res.json({
       topic,
       summary,
