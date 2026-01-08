@@ -75,7 +75,7 @@ app.get('/summarize', async (req, res) => {
       }
     );
 
-    summary = hfResponse.data.choices[0]?.message?.content?.trim() || summary;
+    summary = hfResponse.data.choices[0]?.message?.content?.trim().replace(/\\n/g, '\n') || summary;
   } catch (error) {
     console.error('Endpoint error:', error.message || error);
     summary = 'Summary currently unavailable — please try again in a moment';
@@ -138,13 +138,15 @@ app.get('/sentiment', async (req, res) => {
 
     const analysis = hfResponse.data.choices[0]?.message?.content?.trim() || '';
 
-    // Improved sentiment extraction
-    const lowerAnalysis = analysis.toLowerCase();
+    // Clean escaped newlines and parse sentiment
+    const cleanAnalysis = analysis.replace(/\\n/g, '\n').trim();
+
+    const lowerAnalysis = cleanAnalysis.toLowerCase();
     if (lowerAnalysis.includes('positive')) sentiment = 'positive';
     else if (lowerAnalysis.includes('negative')) sentiment = 'negative';
     else sentiment = 'neutral';
 
-    explanation = analysis.replace(/\\n/g, '\n').trim();
+    explanation = cleanAnalysis;
   } catch (error) {
     console.error('Sentiment endpoint error:', error.message);
     explanation = 'Sentiment analysis failed — try again later';
