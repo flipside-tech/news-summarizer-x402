@@ -33,6 +33,11 @@ app.use(paymentMiddleware(
       price: '$0.005',
       network: 'base',
       description: 'Sentiment analysis of recent news'
+    },
+    'GET /meme': { 
+        price: '$0.005', 
+        network: 'base', 
+        description: 'Generate a meme' 
     }
   },
   facilitator  // Coinbase CDP facilitator
@@ -157,6 +162,46 @@ app.get('/sentiment', async (req, res) => {
     sentiment,
     explanation,
     key_points
+  });
+});
+
+app.get('/meme', async (req, res) => {
+  const { text = 'x402 to the moon' } = req.query;
+
+  let imageUrl = 'Meme generation failed';
+
+  try {
+    // Get popular templates
+    const templatesResponse = await axios.get('https://api.imgflip.com/get_memes');
+    const templates = templatesResponse.data.data.memes;
+
+    // Use a popular template (e.g., Drake Hotline Bling - index 0 often good)
+    const templateId = templates[2].id;  // Change index for different template
+
+    // Caption the image (free tier uses test/test credentials)
+    const captionResponse = await axios.post('https://api.imgflip.com/caption_image', null, {
+      params: {
+        template_id: templateId,
+        username: 'test',  // Free tier
+        password: 'test',
+        text0: text.toUpperCase(),
+        text1: 'x402 powered'
+      }
+    });
+
+    if (captionResponse.data.success) {
+      imageUrl = captionResponse.data.data.url;
+    } else {
+      throw new Error(captionResponse.data.error_message);
+    }
+  } catch (error) {
+    console.error('Meme generation error:', error.message);
+    imageUrl = 'Failed to generate meme — try again';
+  }
+
+  res.json({
+    text,
+    imageUrl
   });
 });
 
