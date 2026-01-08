@@ -166,18 +166,17 @@ app.get('/sentiment', async (req, res) => {
 });
 
 app.get('/meme', async (req, res) => {
-  const { text = 'x402 to the moon' } = req.query;
+  const { text = 'to the moon' } = req.query;
 
   let imageUrl = 'Meme generation failed';
 
   try {
-    // Choose a template (see https://memegen.link/templates for list)
-    const template = 'doge';  // Popular options: 'drake', 'spongebob', 'success', 'fry', 'change-my-mind'
+    // Choose a template (popular ones)
+    const template = 'doge';  // Options: 'drake', 'spongebob', 'success', 'fry', 'change-my-mind'
 
     const topText = encodeURIComponent(text.toUpperCase());
-    const bottomText = encodeURIComponent('x402 POWERED');
+    const bottomText = '';  // Empty bottom text — no x402 mention
 
-    // Direct URL generation — no API call needed
     imageUrl = `https://api.memegen.link/images/${template}/${topText}/${bottomText}.png`;
   } catch (error) {
     console.error('Meme generation error:', error.message);
