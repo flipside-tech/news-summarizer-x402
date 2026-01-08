@@ -22,23 +22,6 @@ app.get('/', (req, res) => {
 const NEWS_API_TOKEN = 'GSYK6v23j11u7tE7NmWKpU5RRmNzQOi5b1JfugHM';
 const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';  // Real base wallet (main or sepolia)
 
-app.use(paymentMiddleware(
-  WALLET_ADDRESS,
-  {
-    'GET /summarize': {
-      price: '$0.005',
-      network: 'base',  // 'base' for mainnet, 'base-sepolia' for testnet
-      description: 'Real-time news summary'
-    },
-    //'GET /sentiment': {  // <-- New route
-     // price: '$0.005',
-     // network: 'base',
-     // description: 'Sentiment analysis of recent news'
- //   }
-  },
-  facilitator  // Coinbase CDP facilitator
-));
-
 app.get('/summarize', async (req, res) => {
   const { topic = 'world', limit = 10 } = req.query;
 
@@ -139,12 +122,13 @@ app.get('/sentiment', async (req, res) => {
 
     const analysis = hfResponse.data.choices[0]?.message?.content?.trim() || '';
 
-    // Parse sentiment from response (Llama is good at following instructions)
-    if (analysis.toLowerCase().includes('positive')) sentiment = 'positive';
-    else if (analysis.toLowerCase().includes('negative')) sentiment = 'negative';
+    // Improved sentiment extraction
+    const lowerAnalysis = analysis.toLowerCase();
+    if (lowerAnalysis.includes('positive')) sentiment = 'positive';
+    else if (lowerAnalysis.includes('negative')) sentiment = 'negative';
     else sentiment = 'neutral';
 
-    explanation = analysis;
+    explanation = analysis.replace(/\\n/g, '\n').trim();
   } catch (error) {
     console.error('Sentiment endpoint error:', error.message);
     explanation = 'Sentiment analysis failed — try again later';
@@ -157,6 +141,23 @@ app.get('/sentiment', async (req, res) => {
     key_points
   });
 });
+
+app.use(paymentMiddleware(
+  WALLET_ADDRESS,
+  {
+    'GET /summarize': {
+      price: '$0.005',
+      network: 'base',  // 'base' for mainnet, 'base-sepolia' for testnet
+      description: 'Real-time news summary'
+    },
+    'GET /sentiment': {  // <-- New route
+      price: '$0.005',
+      network: 'base',
+      description: 'Sentiment analysis of recent news'
+    }
+  },
+  facilitator  // Coinbase CDP facilitator
+));
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
