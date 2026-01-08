@@ -22,6 +22,23 @@ app.get('/', (req, res) => {
 const NEWS_API_TOKEN = 'GSYK6v23j11u7tE7NmWKpU5RRmNzQOi5b1JfugHM';
 const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';  // Real base wallet (main or sepolia)
 
+app.use(paymentMiddleware(
+  WALLET_ADDRESS,
+  {
+    'GET /summarize': {
+      price: '$0.005',
+      network: 'base',  // 'base' for mainnet, 'base-sepolia' for testnet
+      description: 'Real-time news summary'
+    },
+    'GET /sentiment': {  // <-- New route
+      price: '$0.005',
+      network: 'base',
+      description: 'Sentiment analysis of recent news'
+    }
+  },
+  facilitator  // Coinbase CDP facilitator
+));
+
 app.get('/summarize', async (req, res) => {
   const { topic = 'world', limit = 10 } = req.query;
 
@@ -141,23 +158,6 @@ app.get('/sentiment', async (req, res) => {
     key_points
   });
 });
-
-app.use(paymentMiddleware(
-  WALLET_ADDRESS,
-  {
-    'GET /summarize': {
-      price: '$0.005',
-      network: 'base',  // 'base' for mainnet, 'base-sepolia' for testnet
-      description: 'Real-time news summary'
-    },
-    'GET /sentiment': {  // <-- New route
-      price: '$0.005',
-      network: 'base',
-      description: 'Sentiment analysis of recent news'
-    }
-  },
-  facilitator  // Coinbase CDP facilitator
-));
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
