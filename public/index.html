@@ -14,13 +14,15 @@
   <h1>x402 News Summarizer</h1>
   <p>Pay $0.005 USDC on Base for an AI summary of any topic.</p>
 
-  <input type="text" id="topic" placeholder="Enter topic (e.g., bitcoin)" value="bitcoin">
-  <button id="get-summary">Get Summary</button>
+   <input type="text" id="topic" placeholder="Enter topic (e.g., bitcoin)" value="bitcoin">
 
- <div id="result">
-  Click "Get Summary" to load the AI summary (payment of $0.005 USDC on Base required).<br>
-  After confirming in your wallet, the summary will appear.
-</div>
+  <button onclick="location.href='/summarize?topic=' + encodeURIComponent(document.getElementById('topic').value) + '&limit=10'">News Summary</button>
+  <button onclick="location.href='/sentiment?topic=' + encodeURIComponent(document.getElementById('topic').value) + '&limit=20'">Sentiment Analysis</button>
+
+  <div id="result">
+    Enter a topic and click a button — you'll be taken to the result page (payment of $0.005 USDC on Base required).<br>
+    After confirming in your wallet, the result will load.
+  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
