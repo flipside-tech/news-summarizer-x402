@@ -171,32 +171,17 @@ app.get('/meme', async (req, res) => {
   let imageUrl = 'Meme generation failed';
 
   try {
-    // Get popular templates
-    const templatesResponse = await axios.get('https://api.imgflip.com/get_memes');
-    const templates = templatesResponse.data.data.memes;
+    // Choose a template (see https://memegen.link/templates for list)
+    const template = 'doge';  // Popular options: 'drake', 'spongebob', 'success', 'fry', 'change-my-mind'
 
-    // Use a popular template (e.g., Drake Hotline Bling - index 0 often good)
-    const templateId = templates[2].id;  // Change index for different template
+    const topText = encodeURIComponent(text.toUpperCase());
+    const bottomText = encodeURIComponent('x402 POWERED');
 
-    // Caption the image (free tier uses test/test credentials)
-    const captionResponse = await axios.post('https://api.imgflip.com/caption_image', null, {
-      params: {
-        template_id: templateId,
-        username: 'test',  // Free tier
-        password: 'test',
-        text0: text.toUpperCase(),
-        text1: 'x402 powered'
-      }
-    });
-
-    if (captionResponse.data.success) {
-      imageUrl = captionResponse.data.data.url;
-    } else {
-      throw new Error(captionResponse.data.error_message);
-    }
+    // Direct URL generation — no API call needed
+    imageUrl = `https://api.memegen.link/images/${template}/${topText}/${bottomText}.png`;
   } catch (error) {
     console.error('Meme generation error:', error.message);
-    imageUrl = 'Failed to generate meme — try again';
+    imageUrl = 'Failed to generate meme';
   }
 
   res.json({
