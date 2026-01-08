@@ -19,7 +19,6 @@ app.get('/', (req, res) => {
 });
 
 // === REPLACE THESE ===
-const NEWS_API_TOKEN = 'GSYK6v23j11u7tE7NmWKpU5RRmNzQOi5b1JfugHM';
 const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';  // Real base wallet (main or sepolia)
 
 app.use(paymentMiddleware(
@@ -77,7 +76,7 @@ app.get('/summarize', async (req, res) => {
     );
 
     summary = hfResponse.data.choices[0]?.message?.content?.trim() || summary;
-    } catch (error) {
+  } catch (error) {
     console.error('Endpoint error:', error.message || error);
     summary = 'Summary currently unavailable — please try again in a moment';
     key_points = key_points || [];
