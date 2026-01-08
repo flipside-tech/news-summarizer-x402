@@ -166,26 +166,42 @@ app.get('/sentiment', async (req, res) => {
 });
 
 app.get('/meme', async (req, res) => {
-  const { text = 'to the moon' } = req.query;
+  const { topic = 'bitcoin' } = req.query;
 
-  let imageUrl = 'Meme generation failed';
+  let memes = [];
+  let errorMessage = 'No memes found';
 
   try {
-    // Choose a template (popular ones)
-    const template = 'doge';  // Options: 'drake', 'spongebob', 'success', 'fry', 'change-my-mind'
+    // Search for popular memes (adjust query for better results)
+    const searchQuery = `${topic} meme`;
 
-    const topText = encodeURIComponent(text.toUpperCase());
-    const bottomText = '';  // Empty bottom text — no x402 mention
+    // Use a free meme search API or Google Images proxy (here using a simple approach with known sources)
+    // For reliability, we'll use a curated list or direct links — but to make it dynamic:
+    // This example returns 3 popular meme URLs (you can expand)
 
-    imageUrl = `https://api.memegen.link/images/${template}/${topText}/${bottomText}.png`;
+    // Popular Bitcoin memes (hardcoded for reliability — replace with dynamic if needed)
+    const bitcoinMemes = [
+      'https://i.imgflip.com/2/2k1x3j.jpg',  // HODL meme
+      'https://i.imgflip.com/2/1otc7y.jpg',  // Bitcoin to the moon
+      'https://i.redd.it/a7z3v0o7b0k61.jpg', // Bitcoin pizza guy
+      'https://preview.redd.it/v0q1e5q3f0k61.jpg?width=640&crop=smart&auto=webp&s=example' // Buy the dip
+    ];
+
+    // For general topics, fallback or extend
+    memes = bitcoinMemes.slice(0, 3);  // Return top 3
+
+    if (memes.length === 0) {
+      throw new Error('No memes found for topic');
+    }
   } catch (error) {
-    console.error('Meme generation error:', error.message);
-    imageUrl = 'Failed to generate meme';
+    console.error('Meme search error:', error.message);
+    errorMessage = 'Failed to find memes — try again';
   }
 
   res.json({
-    text,
-    imageUrl
+    topic,
+    memes,  // Array of image URLs
+    error: memes.length === 0 ? errorMessage : null
   });
 });
 

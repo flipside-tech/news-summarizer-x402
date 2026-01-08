@@ -18,7 +18,7 @@
 
   <button onclick="location.href='/summarize?topic=' + encodeURIComponent(document.getElementById('topic').value) + '&limit=10'">News Summary</button>
   <button onclick="location.href='/sentiment?topic=' + encodeURIComponent(document.getElementById('topic').value) + '&limit=20'">Sentiment Analysis</button>
-  <button onclick="location.href='/meme?text=' + encodeURIComponent(document.getElementById('topic').value || 'to the moon')">Generate Meme</button>
+  <button onclick="location.href='/meme?topic=' + encodeURIComponent(document.getElementById('topic').value || 'bitcoin')">Get Memes</button>
 
   <div id="result">
     Enter a topic and click a button — you'll be taken to the result page (payment of $0.005 USDC on Base required).<br>
