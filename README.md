@@ -15,9 +15,10 @@ GET /summarize?topic=[topic]&limit=[1-20]
 **Example**
 ```bash
 curl "https://news-summarizer-x402.vercel.app/summarize?topic=bitcoin&limit=10"
+```
 
-Response (after payment)
-
+**Response (after payment)**
+```bash
 {
   "topic": "bitcoin",
   "summary": "Bitcoin price has surged past $100K following ETF approvals and institutional adoption...",
@@ -26,32 +27,36 @@ Response (after payment)
     {"title": "Bitcoin ETF News", "url": "https://..."}
   ]
 }
-
-2. Sentiment Analysis
+```
+### 2. Sentiment Analysis
 
 GET /sentiment?topic=[topic]&limit=[1-50]
 
-Example
+**Example**
 
+```bash
 curl "https://news-summarizer-x402.vercel.app/sentiment?topic=bitcoin&limit=20"
+```
+**Response (after payment)**
 
-Response (after payment)
-
+```bash
 {
   "topic": "bitcoin",
   "sentiment": "positive",
   "explanation": "Recent articles highlight strong institutional adoption and ETF inflows...",
   "key_points": ["Bitcoin ETF approvals boost prices", "..."]
 }
-
-Payment Details
+```
+## Payment Details
 
 Price: $0.005 USDC per request
 Chain: Base mainnet
 Receiving wallet: 0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268
 Powered by: x402 + Coinbase CDP facilitator
 
-Initial Response (Unpaid)
+**Initial Response (Unpaid)**
+
+```bash
 
 {
   "title": "Payment Required",
@@ -69,14 +74,15 @@ Initial Response (Unpaid)
     ]
   }
 }
+```
 
-How to Use
+## How to Use
 
 Hit any endpoint → receive 402 Payment Required.
 Pay with an x402-compatible wallet (e.g., Coinbase Wallet).
 Receive the full JSON response with AI-powered content.
 
-Built With
+## Built With
 
 Node.js + Express
 x402-express + @coinbase/x402
