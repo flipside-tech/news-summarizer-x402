@@ -165,43 +165,32 @@ app.get('/sentiment', async (req, res) => {
   });
 });
 
-app.get('/meme', async (req, res) => {
-  const { topic = 'bitcoin' } = req.query;
+app.get('/gif', async (req, res) => {
+  const { topic = 'funny' } = req.query;
 
-  let memes = [];
-  let errorMessage = 'No memes found';
+  let gifUrl = 'GIF not found';
 
   try {
-    // Search for popular memes (adjust query for better results)
-    const searchQuery = `${topic} meme`;
+    const apiKey = process.env.GIPHY_API_KEY;
+    if (!apiKey) throw new Error('Giphy API key not set');
 
-    // Use a free meme search API or Google Images proxy (here using a simple approach with known sources)
-    // For reliability, we'll use a curated list or direct links — but to make it dynamic:
-    // This example returns 3 popular meme URLs (you can expand)
+    const searchUrl = `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(topic)}&limit=50&rating=g`;
+    const response = await axios.get(searchUrl);
 
-    // Popular Bitcoin memes (hardcoded for reliability — replace with dynamic if needed)
-    const bitcoinMemes = [
-      'https://i.imgflip.com/2/2k1x3j.jpg',  // HODL meme
-      'https://i.imgflip.com/2/1otc7y.jpg',  // Bitcoin to the moon
-      'https://i.redd.it/a7z3v0o7b0k61.jpg', // Bitcoin pizza guy
-      'https://preview.redd.it/v0q1e5q3f0k61.jpg?width=640&crop=smart&auto=webp&s=example' // Buy the dip
-    ];
-
-    // For general topics, fallback or extend
-    memes = bitcoinMemes.slice(0, 3);  // Return top 3
-
-    if (memes.length === 0) {
-      throw new Error('No memes found for topic');
+    const gifs = response.data.data;
+    if (gifs.length > 0) {
+      // Pick a random GIF
+      const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
+      gifUrl = randomGif.images.original.url;
     }
   } catch (error) {
-    console.error('Meme search error:', error.message);
-    errorMessage = 'Failed to find memes — try again';
+    console.error('Giphy error:', error.message);
+    gifUrl = 'Failed to load GIF — try again';
   }
 
   res.json({
     topic,
-    memes,  // Array of image URLs
-    error: memes.length === 0 ? errorMessage : null
+    gifUrl
   });
 });
 
