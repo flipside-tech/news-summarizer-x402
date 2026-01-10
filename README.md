@@ -1,61 +1,87 @@
-# x402 News Summarizer API
+# x402 News & Sentiment API
 
-A real-time news summary API protected by **x402 micropayments** on Base.
+A real-time news and sentiment analysis API protected by **x402 micropayments** on Base.
 
-Pay **$0.005 USDC** per request — no subscription needed.
+Pay **$0.005 USDC** per request — no subscription, no account needed.
 
-## Features
-- Fresh news summaries
-- x402 protection (onchain USDC payments)
-- Ideal for AI agents and bots
+Perfect for AI agents, bots, or personal use.
 
-## Endpoint
+## Endpoints
 
-GET https://your-vercel-url.vercel.app/summarize?topic=[topic]&limit=[1-20]
+### 1. News Summary
 
-## Example Request
+GET /summarize?topic=[topic]&limit=[1-20]
 
+**Example**
 ```bash
-curl "https://your-vercel-url.vercel.app/summarize?topic=bitcoin&limit=10"
+curl "https://news-summarizer-x402.vercel.app/summarize?topic=bitcoin&limit=10"
+
+Response (after payment)
 
 {
   "topic": "bitcoin",
-  "summary": "Concise summary of latest news...",
-  "key_points": ["Point 1", "Point 2"],
+  "summary": "Bitcoin price has surged past $100K following ETF approvals and institutional adoption...",
+  "key_points": ["ETF inflows hit record", "Institutional buying drives rally"],
   "sources": [
-    {"title": "Article Title", "url": "https://..."}
+    {"title": "Bitcoin ETF News", "url": "https://..."}
   ]
 }
-```
 
-## Payment Details
+2. Sentiment Analysis
 
-Price: $0.005 USDC
+GET /sentiment?topic=[topic]&limit=[1-50]
+
+Example
+
+curl "https://news-summarizer-x402.vercel.app/sentiment?topic=bitcoin&limit=20"
+
+Response (after payment)
+
+{
+  "topic": "bitcoin",
+  "sentiment": "positive",
+  "explanation": "Recent articles highlight strong institutional adoption and ETF inflows...",
+  "key_points": ["Bitcoin ETF approvals boost prices", "..."]
+}
+
+Payment Details
+
+Price: $0.005 USDC per request
 Chain: Base mainnet
-Wallet: Your receiving address
+Receiving wallet: 0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268
+Powered by: x402 + Coinbase CDP facilitator
 
-## Local Setup
+Initial Response (Unpaid)
 
-```bash
-git clone https://github.com/flipside-tech/news-summarizer-x402.git
-cd news-summarizer-x402
-npm install
-```
+{
+  "title": "Payment Required",
+  "status": 402,
+  "detail": "Payment required to access this resource",
+  "payment_required": {
+    "accepts": [
+      {
+        "scheme": "exact",
+        "price": "$0.005",
+        "network": "base",
+        "payTo": "0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268",
+        "asset": "USDC"
+      }
+    ]
+  }
+}
 
-## Set env vars
+How to Use
 
-```bash
-export CDP_API_KEY_ID='your_id'
-export CDP_API_KEY_SECRET='your_secret'
-export NEWS_API_TOKEN='your_token'
-node server.js
-```
+Hit any endpoint → receive 402 Payment Required.
+Pay with an x402-compatible wallet (e.g., Coinbase Wallet).
+Receive the full JSON response with AI-powered content.
 
-## Built With
+Built With
 
 Node.js + Express
 x402-express + @coinbase/x402
-TheNewsAPI.com
+TheNewsAPI.com (news data)
+Hugging Face (Llama-3.1-Instruct for summarization & sentiment)
 
 Active MVP — accepting real micropayments! 🚀
-Made in 2026
+Made in January 2026
