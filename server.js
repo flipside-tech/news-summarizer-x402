@@ -34,10 +34,10 @@ app.use(paymentMiddleware(
       network: 'base',
       description: 'Sentiment analysis of recent news'
     },
-    'GET /meme': { 
+    'GET /gif': { 
         price: '$0.005', 
         network: 'base', 
-        description: 'Generate a meme' 
+        description: 'Random GIF based on topic' 
     }
   },
   facilitator  // Coinbase CDP facilitator
