@@ -33,11 +33,6 @@ app.use(paymentMiddleware(
       price: '$0.005',
       network: 'base',
       description: 'Sentiment analysis of recent news'
-    },
-    'GET /gif': { 
-        price: '$0.005', 
-        network: 'base', 
-        description: 'Random GIF based on topic' 
     }
   },
   facilitator  // Coinbase CDP facilitator
@@ -162,35 +157,6 @@ app.get('/sentiment', async (req, res) => {
     sentiment,
     explanation,
     key_points
-  });
-});
-
-app.get('/gif', async (req, res) => {
-  const { topic = 'funny' } = req.query;
-
-  let gifUrl = 'GIF not found';
-
-  try {
-    const apiKey = process.env.GIPHY_API_KEY;
-    if (!apiKey) throw new Error('Giphy API key not set');
-
-    const searchUrl = `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(topic)}&limit=50&rating=g`;
-    const response = await axios.get(searchUrl);
-
-    const gifs = response.data.data;
-    if (gifs.length > 0) {
-      // Pick a random GIF
-      const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
-      gifUrl = randomGif.images.original.url;
-    }
-  } catch (error) {
-    console.error('Giphy error:', error.message);
-    gifUrl = 'Failed to load GIF — try again';
-  }
-
-  res.json({
-    topic,
-    gifUrl
   });
 });
 
