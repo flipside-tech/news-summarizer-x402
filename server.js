@@ -19,25 +19,30 @@ app.get('/', (req, res) => {
 });
 
 // === REPLACE THESE ===
-const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';  // Real base wallet (main or sepolia)
+const WALLET_ADDRESS = '0x19B1614Ee8272178d09CdDC892FAa2c8cCB91268';
 
 app.use(paymentMiddleware(
   WALLET_ADDRESS,
   {
     'GET /summarize': {
       price: '$0.005',
-      network: 'base',  // 'base' for mainnet, 'base-sepolia' for testnet
+      network: 'base',
       description: 'Real-time news summary'
     },
-    'GET /sentiment': {  // <-- New route
+    'GET /sentiment': {
       price: '$0.005',
       network: 'base',
       description: 'Sentiment analysis of recent news'
     }
   },
-  facilitator  // Coinbase CDP facilitator
+  facilitator
 ));
 
+/**
+ * =========================
+ * SUMMARIZE ENDPOINT
+ * =========================
+ */
 app.get('/summarize', async (req, res) => {
   const { topic = 'world', limit = 10 } = req.query;
 
@@ -46,18 +51,26 @@ app.get('/summarize', async (req, res) => {
   let sources = [];
 
   try {
-    const newsUrl = `https://api.thenewsapi.com/v1/news/all?api_token=${process.env.NEWS_API_TOKEN}&search=${encodeURIComponent(topic)}&limit=${limit}&language=en`;
+    const newsUrl = `https://api.currentsapi.services/v1/search?apiKey=${process.env.CURRENTS_API_KEY}&keywords=${encodeURIComponent(topic)}&language=en&page_size=${limit}`;
+
     const newsResponse = await axios.get(newsUrl);
-    const articles = newsResponse.data.data || [];
+    const articles = newsResponse.data.news || [];
 
     if (articles.length === 0) {
       throw new Error('No articles found');
     }
 
-    key_points = articles.map(a => a.title);
-    sources = articles.map(a => ({ title: a.title, url: a.url }));
+    key_points = articles.map(a => a.title || 'No title');
 
-    const rawText = articles.map(a => `${a.title}. ${a.description || ''}`).join(' ');
+    sources = articles.map(a => ({
+      title: a.title || 'No title',
+      url: a.url || '#'
+    }));
+
+    const rawText = articles
+      .map(a => `${a.title || ''}. ${a.description || a.url || ''}`)
+      .join(' ');
+
     const inputText = rawText.slice(0, 2000);
 
     const hfResponse = await axios.post(
@@ -75,23 +88,29 @@ app.get('/summarize', async (req, res) => {
       }
     );
 
-    summary = hfResponse.data.choices[0]?.message?.content?.trim().replace(/\\n/g, '\n') || summary;
+    summary =
+      hfResponse.data.choices[0]?.message?.content
+        ?.trim()
+        .replace(/\\n/g, '\n') || summary;
+
   } catch (error) {
     console.error('Endpoint error:', error.message || error);
     summary = 'Summary currently unavailable — please try again in a moment';
-    key_points = key_points || [];
-    sources = sources || [];
   }
 
-  // Always return valid JSON with explicit topic
   res.json({
-    topic: topic,  // Explicitly use the query topic (never overridden)
+    topic,
     summary,
     key_points,
     sources
   });
 });
 
+/**
+ * =========================
+ * SENTIMENT ENDPOINT
+ * =========================
+ */
 app.get('/sentiment', async (req, res) => {
   const { topic = 'world', limit = 20 } = req.query;
 
@@ -100,20 +119,23 @@ app.get('/sentiment', async (req, res) => {
   let key_points = [];
 
   try {
-    const newsUrl = `https://api.thenewsapi.com/v1/news/all?api_token=${process.env.NEWS_API_TOKEN}&search=${encodeURIComponent(topic)}&limit=${limit}&language=en`;
+    const newsUrl = `https://api.currentsapi.services/v1/search?apiKey=${process.env.CURRENTS_API_KEY}&keywords=${encodeURIComponent(topic)}&language=en&page_size=${limit}`;
+
     const newsResponse = await axios.get(newsUrl);
-    const articles = newsResponse.data.data || [];
+    const articles = newsResponse.data.news || [];
 
     if (articles.length === 0) {
       throw new Error('No articles found');
     }
 
-    key_points = articles.map(a => a.title);
+    key_points = articles.map(a => a.title || 'No title');
 
-    const rawText = articles.map(a => `${a.title}. ${a.description || ''}`).join(' ');
+    const rawText = articles
+      .map(a => `${a.title || ''}. ${a.description || a.url || ''}`)
+      .join(' ');
+
     const inputText = rawText.slice(0, 2000);
 
-    // Hugging Face sentiment analysis
     const hfResponse = await axios.post(
       'https://router.huggingface.co/v1/chat/completions',
       {
@@ -136,17 +158,18 @@ app.get('/sentiment', async (req, res) => {
       }
     );
 
-    const analysis = hfResponse.data.choices[0]?.message?.content?.trim() || '';
+    const analysis =
+      hfResponse.data.choices[0]?.message?.content?.trim() || '';
 
-    // Clean escaped newlines and parse sentiment
     const cleanAnalysis = analysis.replace(/\\n/g, '\n').trim();
-
     const lowerAnalysis = cleanAnalysis.toLowerCase();
+
     if (lowerAnalysis.includes('positive')) sentiment = 'positive';
     else if (lowerAnalysis.includes('negative')) sentiment = 'negative';
     else sentiment = 'neutral';
 
     explanation = cleanAnalysis;
+
   } catch (error) {
     console.error('Sentiment endpoint error:', error.message);
     explanation = 'Sentiment analysis failed — try again later';
